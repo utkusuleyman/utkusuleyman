@@ -1,0 +1,42 @@
+import yfinance as yf
+import pandas_ta as ta
+
+# Son 6 aylık günlük veriyi çekiyoruz
+data = yf.download('TUPRS.IS', period='6mo', interval='1d')
+
+# Eğer veri çekildiyse, teknik göstergeleri hesaplayalım
+if not data.empty:
+    # Teknik göstergeler ekleniyor
+    data['RSI_14'] = ta.rsi(data['Close'], length=14)
+    data['MA_9'] = ta.sma(data['Close'], length=9)
+    data['MA_21'] = ta.sma(data['Close'], length=21)
+    data['MA_50'] = ta.sma(data['Close'], length=50)
+    data['MA_200'] = ta.sma(data['Close'], length=200)
+
+    # Destek ve direnç seviyeleri için yüksek ve düşük fiyatlar alınarak hesaplama
+    high = data['High']
+    low = data['Low']
+    close = data['Close']
+
+    # Pivot noktaları, destek ve direnç hesaplama
+    data['pivot_point'] = (high + low + close) / 3
+    data['support_1'] = (data['pivot_point'] * 2) - high
+    data['support_2'] = data['pivot_point'] - (high - low)
+    data['resistance_1'] = (data['pivot_point'] * 2) - low
+    data['resistance_2'] = data['pivot_point'] + (high - low)
+
+    # Son veriyi göster
+    latest_data = data.tail(1)
+    print("Güncel TUPRS Teknik Analizi:")
+    print(f"RSI (14): {latest_data['RSI_14'].values[0]}")
+    print(f"MA (9): {latest_data['MA_9'].values[0]}")
+    print(f"MA (21): {latest_data['MA_21'].values[0]}")
+    print(f"MA (50): {latest_data['MA_50'].values[0]}")
+    print(f"MA (200): {latest_data['MA_200'].values[0]}")
+    print(f"Pivot Noktası: {latest_data['pivot_point'].values[0]}")
+    print(f"Destek 1: {latest_data['support_1'].values[0]}")
+    print(f"Destek 2: {latest_data['support_2'].values[0]}")
+    print(f"Direnç 1: {latest_data['resistance_1'].values[0]}")
+    print(f"Direnç 2: {latest_data['resistance_2'].values[0]}")
+else:
+    print("Veri bulunamadı. Lütfen sembolü ve zaman aralığını kontrol edin.")
